@@ -8,15 +8,10 @@ import (
 	"path/filepath"
 )
 
-type (
-	person struct {
-		answer map[rune]bool
-	}
-
-	group struct {
-		answers []person
-	}
-)
+type group struct {
+	answers map[rune]int
+	people  int
+}
 
 /*	readInput
 	Read the filename and returns a list.
@@ -35,6 +30,33 @@ func readInput(filename string) ([]group, error) {
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 
+	/*
+	var lines []string
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	var allGroups []group
+	var thisGroup group
+	for _, value := range lines {
+		if value != "" {	
+			thisLineMap := make(map[rune]int)
+
+			for _, char := range value {
+				thisLineMap[char]++
+			}
+
+			thisGroup.answers = thisLineMap
+			thisGroup.people++
+		}			
+		
+		if value == "" {
+			allGroups = append(allGroups, thisGroup)
+			thisGroup = group{}
+		}
+	}
+	*/
+
 	var allGroups []group
 	var thisGroup group
 	for scanner.Scan() {
@@ -44,15 +66,14 @@ func readInput(filename string) ([]group, error) {
 			thisGroup = group{}
 			continue
 		}
-		thisLineMap := make(map[rune]bool)
-		for _, char := range thisLine {
-			thisLineMap[char] = true
-		}
-		thisPerson := person{
-			answer: thisLineMap,
-		}
-		thisGroup.answers = append(thisGroup.answers, thisPerson)
 
+		thisLineMap := make(map[rune]int)
+		for _, char := range thisLine {
+			thisLineMap[char]++
+		}
+
+		thisGroup.answers = thisLineMap
+		thisGroup.people++
 	}
 
 	return allGroups, nil
@@ -77,29 +98,16 @@ func answerCounter(input []string) (int, error) {
 }
 
 func answerCounterTwo(input []group) (int, error) {
-	var sum = 0
-	for _, thisGroup := range input {
-		answers := make(map[rune]bool)
-		for _, thisPerson := range thisGroup.answers {
-			for thisAnswer := range thisPerson.answer {
-				answers[thisAnswer] = true
-			}
-		}
-		fmt.Println(len(answers))
-		sum += len(answers)
-	}
-	return sum, nil
+	return 0, nil
 }
 
 func main() {
-	questions, err := readInput("test.txt")
+	groups, err := readInput("test.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	uwu, err := answerCounterTwo(questions)
-	if err != nil {
-		log.Fatalln(err)
+	for _, thisGroup := range groups {
+		fmt.Println(thisGroup.people)
 	}
-	fmt.Println(uwu)
 }
