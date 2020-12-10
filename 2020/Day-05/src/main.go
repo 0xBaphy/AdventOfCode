@@ -33,46 +33,92 @@ func readInput(filename string) ([]string, error) {
 	return lines, nil
 }
 
-func seatFinder(input []string)(int, error) {
-// BFFFBBFRRR
-// 	0-127 rows
-// F means to take the lower half, keeping rows 0 through 63.
-// B means to take the upper half, keeping rows 32 through 63.
-// [][]bool{
-//  {0,0,0,0,0,0,0,0,0}
-//  {0,0,0,0,0,0,0,0,0}
-//  {0,0,0,0,0,0,0,0,0}
-//  {0,0,0,0,0,0,0,0,0}
-//}
+/*
+seatFinder will find the largest seat ID in the input array
+*/
+func seatFinder(input []string) (int, [][]int, error) {
+	plane := make([][]int, 8)
+	for i := range plane {
+		plane[i] = make([]int, 128)
+	}
 
-    plane := make([][]bool, 8)
-    for i, _ := range plane {
-        plane[i] = make([]bool, 128)
-    }
+	maxID := 0
+	for _, line := range input {
+		seatID := 0
+		rowEnd := 127
+		rowStart := 0
+		colEnd := 7
+		colStart := 0
+		colSelect := 0
+		rowSelect := 0
+		for index, char := range line {
+			if index < 7 {
+				if index == 6 {
+					if char == 'B' {
+						rowSelect = rowEnd
+					}
+					if char == 'F' {
+						rowSelect = rowStart
+					}
 
-    for _, line := range input {
-        row := 128
-        upperOrLower := 'U'
-        for _, char := range line {
-            if char == 'B' {
-                row
+					continue
+				}
+
+				if char == 'B' {
+					rowStart = rowEnd - ((rowEnd - rowStart) / 2)
+				}
+				if char == 'F' {
+					rowEnd = rowEnd - ((rowEnd - rowStart) / 2) - 1
+				}
 			}
-        }
-    }
 
+			if index == len(line)-1 {
+				if char == 'R' {
+					colSelect = colEnd
+				}
+				if char == 'L' {
+					colSelect = colStart
+				}
 
+				break
+			}
 
+			if char == 'R' {
+				colStart = colEnd - ((colEnd - colStart) / 2)
+			}
+			if char == 'L' {
+				colEnd = colEnd - ((colEnd - colStart) / 2) - 1
+			}
+		}
+		seatID = (rowSelect * 8) + colSelect
+		if seatID > maxID {
+			maxID = seatID
+		}
+		plane[colSelect][rowSelect] = 1
 
+	}
 
-
-	return 0, nil
+	return maxID, plane, nil
 }
 
 func main() {
-	boardingPasses, err := readInput("2020/Day-05/src/test.txt")
+	boardingPasses, err := readInput("acido-input.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(boardingPasses)
+	seatID, plane, err := seatFinder(boardingPasses)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(seatID)
+	for colInx := range plane {
+		for rowInx := range plane[colInx] {
+			if plane[colInx][rowInx] == 0 {
+				plane[colInx][rowInx] = (rowInx * 8) + colInx
+			}
+		}
+		fmt.Println(plane[colInx])
+	}
 }
