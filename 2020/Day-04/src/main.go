@@ -319,7 +319,7 @@ func passportChecker(input []string) (int, error) {
 }
 
 func main() {
-	passports, err := readInput("2020/Day-04/src/input-baphy.txt")
+	passports, err := readInput("input-baphy.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}
