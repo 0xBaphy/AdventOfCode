@@ -30,7 +30,6 @@ func readInput(filename string) ([]group, error) {
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 
-	/*
 	var lines []string
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
@@ -38,76 +37,77 @@ func readInput(filename string) ([]group, error) {
 
 	var allGroups []group
 	var thisGroup group
-	for _, value := range lines {
-		if value != "" {	
-			thisLineMap := make(map[rune]int)
+	thisLineMap := make(map[rune]int)
+	for index, line := range lines {
 
-			for _, char := range value {
+		if line != "" {
+			for _, char := range line {
 				thisLineMap[char]++
 			}
 
 			thisGroup.answers = thisLineMap
 			thisGroup.people++
-		}			
-		
-		if value == "" {
-			allGroups = append(allGroups, thisGroup)
-			thisGroup = group{}
 		}
-	}
-	*/
 
-	var allGroups []group
-	var thisGroup group
-	for scanner.Scan() {
-		thisLine := scanner.Text()
-		if thisLine == "" {
+		if line == "" || index == len(lines)-1 {
 			allGroups = append(allGroups, thisGroup)
 			thisGroup = group{}
+			thisLineMap = make(map[rune]int)
+
 			continue
 		}
-
-		thisLineMap := make(map[rune]int)
-		for _, char := range thisLine {
-			thisLineMap[char]++
-		}
-
-		thisGroup.answers = thisLineMap
-		thisGroup.people++
 	}
 
 	return allGroups, nil
 }
 
 /*	answerCounter
-	Counts the answered questions on each group and returns the sum value of all questions answered.
+	Counts the answered questions on each group.
 */
-func answerCounter(input []string) (int, error) {
-	answers := make(map[rune]int)
+func answerCounter(input []group) (int, error) {
 	counter := 0
-	for _, value := range input {
-		for _, char := range value {
-			answers[char]++
+	for _, thisGroup := range input {
+		for range thisGroup.answers {
+			counter++
 		}
-
-		counter += len(answers)
-		answers = make(map[rune]int)
 	}
 
 	return counter, nil
 }
 
+/*	answerCounterTwo
+	Counts the answered questions on each group using the new instructions.
+*/
 func answerCounterTwo(input []group) (int, error) {
-	return 0, nil
+	counter := 0
+	for _, thisGroup := range input {
+		for _, answer := range thisGroup.answers {
+			if thisGroup.people == answer {
+				counter++
+			}
+		}
+	}
+
+	return counter, nil
 }
 
 func main() {
-	groups, err := readInput("test.txt")
+	groups, err := readInput("baphy-input.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	for _, thisGroup := range groups {
-		fmt.Println(thisGroup.people)
+	one, err := answerCounter(groups)
+	if err != nil {
+		log.Fatalln(err)
 	}
+
+	fmt.Println(one)
+
+	two, err := answerCounterTwo(groups)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println(two)
 }
