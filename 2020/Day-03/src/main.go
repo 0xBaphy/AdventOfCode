@@ -45,9 +45,9 @@ func replaceAtIndex(in string, r rune, i int) string {
 /*	treeCounter
 	Goes trough the map and counts the trees that are in the way of the toboggan.
 */
-func treeCounter(treeMap []string, right int, down int)(int, error) {
+func treeCounter(treeMap []string, right int, down int) (int, error) {
 	treeCount := 0
-	for i:= 0; i<down; i++{
+	for i := 0; i < down; i++ {
 		fmt.Println(treeMap[i])
 	}
 
@@ -57,7 +57,7 @@ func treeCounter(treeMap []string, right int, down int)(int, error) {
 
 		lineIndex := (right * (iterCount)) % len(value)
 
-		if value[lineIndex] == '#'{
+		if value[lineIndex] == '#' {
 			fmt.Println(replaceAtIndex(value, 'X', lineIndex))
 			treeCount++
 		} else {
@@ -72,11 +72,11 @@ func treeCounter(treeMap []string, right int, down int)(int, error) {
 }
 
 func main() {
-	treeMap, err := readInput("input-acido.txt")
+	treeMap, err := readInput("input.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	
+
 	forest := 1
 	slopes := [][]int{
 		{1, 1},
@@ -85,7 +85,7 @@ func main() {
 		{7, 1},
 		{1, 2},
 	}
-	
+
 	for _, slope := range slopes {
 		trees, err := treeCounter(treeMap, slope[0], slope[1])
 		if err != nil {

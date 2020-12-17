@@ -96,7 +96,7 @@ func checkEntriesPartTwo(entries []int) (int, error) {
 }
 
 func main() {
-	numbers, err := readInput("./input-acido.txt")
+	numbers, err := readInput("input.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}
