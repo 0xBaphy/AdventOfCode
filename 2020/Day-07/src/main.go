@@ -6,18 +6,16 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 )
 
-type bag struct {
-	color    string
-	contains map[string]int
+type bags struct {
+	bag map[string]map[string]int
 }
 
 /*	readInput
-	Read the filename and returns a list.
+	Reads the filename and returns a list.
 */
 func readInput(filename string) ([]string, error) {
 	filePath, err := filepath.Abs(filename)
@@ -41,83 +39,92 @@ func readInput(filename string) ([]string, error) {
 	return lines, nil
 }
 
-func bagSorter(input []string) ([]bag, error) {
-	var bags []bag
-	regex := regexp.MustCompile(`([a-z].+?)(?:bags )|([0-9])(.+?)(?:bags|bag)`)
-	reNum := regexp.MustCompile(`\w[0-9]|[0-9]`)
-	reBag := regexp.MustCompile(`(bags)|(bag)`)
+/*	sorter
+	Sorts the provided bag rules into a bag struct.
+*/
+func sorter(input []string) (bags, error) {
+	var tempBag bags
+	parentBag := make(map[string]map[string]int)
 
 	for _, thisBag := range input {
-		matches := regex.FindAllString(thisBag, -1)
-		var b bag
-		nestedBag := make(map[string]int)
-		for index, match := range matches {
-			bagNum := reNum.FindString(match)
-			match = reBag.ReplaceAllString(match, "")
-			match = reNum.ReplaceAllString(match, "")
-			match = strings.TrimSpace(match)
+		childBag := make(map[string]int)
 
-			if index == 0 {
-				b.color = match
+		split := strings.Split(thisBag, " ")
 
-			} else {
-				num, err := strconv.Atoi(bagNum)
+		if split[4] == "no" {
+			parentBag[split[0]+" "+split[1]] = childBag
+			tempBag.bag = parentBag
+			continue
+		}
+
+		for index := 4; index < len(split); index++ {
+			if strings.Contains(split[index], "bag") {
+				color := split[index-2] + " " + split[index-1]
+				num, err := strconv.Atoi(split[index-3])
 				if err != nil {
 					log.Fatalln(err)
 				}
 
-				nestedBag[match] = num
+				childBag[color] = num
 			}
+
 		}
-		b.contains = nestedBag
-		bags = append(bags, b)
+
+		parentBag[split[0]+" "+split[1]] = childBag
 	}
 
-	return bags, nil
+	tempBag.bag = parentBag
+	return tempBag, nil
 }
 
-func goldBagCounter(input []bag) (int, error) {
-	bags := make(map[string]bool)
-	prev := 0
-	for index := 0; index < len(input); index++ {
-		for color := range input[index].contains {
-			if color == "shiny gold" {
-				bags[input[index].color] = true
-			}
-			for mapColor := range bags {
-				if color == mapColor {
-					bags[input[index].color] = true
-				}
-			}
-		}
+/*	counterOne
+	Counts how many bags can eventually contain at least one target bag.
+*/
+func counterOne(input bags, target string) int {
+	bagCount := make(map[string]bool)
+	bagCount[target] = true
 
-		if index == len(input)-1 {
-			index = 0
-			if prev == len(bags) {
-				break
+start:
+	for parentColor := range input.bag {
+		for childColor := range input.bag[parentColor] {
+			if bagCount[childColor] && !bagCount[parentColor] {
+				bagCount[parentColor] = true
+				goto start
 			}
-			prev = len(bags)
 		}
 	}
 
-	return len(bags), nil
+	return len(bagCount) - 1
+}
+
+/*	counterTwo
+	Counts how many individual bags can fit inside the provided target bag.
+*/
+func counterTwo(input bags, target string) int {
+	bagCount := 0
+
+	for color, num := range input.bag[target] {
+		bagCount += num * counterTwo(input, color)
+
+	}
+
+	return bagCount + 1
 }
 
 func main() {
-	bags, err := readInput("baphy-input.txt")
+	input, err := readInput("baphy-input.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	sortedBags, err := bagSorter(bags)
+	sorted, err := sorter(input)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	answer, err := goldBagCounter(sortedBags)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	one := counterOne(sorted, "shiny gold")
+	fmt.Println(one)
 
-	fmt.Println(answer)
+	two := counterTwo(sorted, "shiny gold")
+	fmt.Println(two - 1)
 }
